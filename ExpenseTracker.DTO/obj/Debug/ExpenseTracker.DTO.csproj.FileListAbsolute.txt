@@ -1,0 +1,5 @@
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\bin\Debug\ExpenseTracker.DTO.dll
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\bin\Debug\ExpenseTracker.DTO.pdb
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.csprojResolveAssemblyReference.cache
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.dll
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.pdb
