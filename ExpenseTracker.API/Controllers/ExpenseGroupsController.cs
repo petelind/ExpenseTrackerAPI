@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
+using System.Web.Http.Routing;
 using Marvin.JsonPatch;
 using Microsoft.ApplicationInsights;
 using ExpenseTracker.API.Helpers;
+using ExpenseTracker.Repository.Entities;
 
 namespace ExpenseTracker.API.Controllers
 {
@@ -29,10 +32,13 @@ namespace ExpenseTracker.API.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult Get(string sort = "-id", string status = "")
+        [Route("api/expensegroups", Name = "ExpenseGroupsList")]
+        public IHttpActionResult Get(string sort = "id", string status = "", int page = 1, int pageSize = 50)
         {
+            const int maxPageSize = 100;
             int statusCode;
 
+            // lets apply filtering (if any)
             try
             {
 
@@ -47,18 +53,68 @@ namespace ExpenseTracker.API.Controllers
                     case "processed":
                         statusCode = 3;
                         break;
-                    default:
-                        statusCode = -1;
+                    default: // no filtering
+                        statusCode = 0;
                         break;
                 }
                 
+                // and then lets query the repository, applying filter and sort
                 var results = _repository.GetExpenseGroups()
-                    .Where( ex => ex.ExpenseGroupStatusId == statusCode)
                     .ApplySort(sort)
-                    .ToList()
-                    .Select(e => _expenseGroupFactory.CreateExpenseGroup(e));
+                    .Where(ex => ex.ExpenseGroupStatusId > 0)
+                    .ToList();
+                    // .Select(e => _expenseGroupFactory.CreateExpenseGroup(e));
 
-                return Ok(results);
+                // and now lets paginate output. First let find out how many pages we have
+                int totalCount = results.Count();
+                int totalPages = (int)Math.Ceiling((double) totalCount / pageSize);
+
+                // and now we are ready to produce URI of "next" & "previous" pages
+                var urlHelper = new UrlHelper(Request);
+                
+                var prevLink = page > 1
+                    ? urlHelper.Link("ExpenseGroupsList", new
+                    {                                                
+                        sort = sort,
+                        status = status,
+                        page = page - 1,
+                        pageSize = pageSize
+                        // userId = userId
+                    })
+                    : ""; // on the 1st page there is no "previous page " link :)
+
+                var nextLink = page < totalPages
+                    ? urlHelper.Link("ExpenseGroupsList", new
+                    {   
+                        page = page + 1,
+                        pageSize = pageSize,
+                        sort = sort,
+                        status = status                       
+                    })
+                    : "";
+
+                // like normal gents we are not forcing customer to parse,
+                // we supply answer AND header and he decides if he needs to paginate & how
+
+                var paginationHeader = new
+                {
+                    currentPage = page,
+                    pageSize = pageSize,
+                    totalCount = totalCount,
+                    totalPages = totalPages,
+                    previousPageLink = prevLink,
+                    nextPageLink = nextLink
+                };
+
+                HttpContext.Current.Response.Headers
+                    .Add("X-Pagination", Newtonsoft.Json
+                    .JsonConvert.SerializeObject(paginationHeader));
+
+                return Ok(results
+                    .Skip(pageSize*(page - 1))
+                    .Take(pageSize)
+                    .Select(e => _expenseGroupFactory.CreateExpenseGroup(e))
+                    );
             }
             catch (Exception e)
             {

@@ -19,6 +19,7 @@ namespace ExpenseTracker.API.Helpers
             {
                 return source;
             }
+            
             var lstSort = sort.Split(',');
 
             string completeSortExpression = "";
@@ -34,10 +35,12 @@ namespace ExpenseTracker.API.Helpers
                 }
             }
 
-            if (!string.IsNullOrEmpty(completeSortExpression))
+            if (!string.IsNullOrWhiteSpace(completeSortExpression))
             {
-                completeSortExpression = completeSortExpression.Remove(completeSortExpression.Count() - 1); 
-                source.OrderBy(completeSortExpression);
+                completeSortExpression = completeSortExpression.Remove(completeSortExpression.Count() - 1);
+                
+                // FIX: OrderBy does not work at all. 
+                source.OrderBy("id descending"); //(completeSortExpression);
             }
 
             return source;
