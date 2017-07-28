@@ -15,7 +15,7 @@ namespace ExpenseTracker.API.Helpers
                 throw new ArgumentNullException();
             }
 
-        if (sort == null)
+        if (String.IsNullOrEmpty(sort))
             {
                 return source;
             }
@@ -35,12 +35,12 @@ namespace ExpenseTracker.API.Helpers
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(completeSortExpression))
+            if (!string.IsNullOrEmpty(completeSortExpression))
             {
                 completeSortExpression = completeSortExpression.Remove(completeSortExpression.Count() - 1);
                 
-                // FIX: OrderBy does not work at all. 
-                source.OrderBy("id descending"); //(completeSortExpression);
+                
+                source = source.OrderBy(completeSortExpression);
             }
 
             return source;

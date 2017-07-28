@@ -38,6 +38,9 @@ namespace ExpenseTracker.API.Controllers
             const int maxPageSize = 100;
             int statusCode;
 
+            // if pagesize is too big lets set it to allowed maximum
+            pageSize = pageSize > maxPageSize ? pageSize = maxPageSize : pageSize = pageSize;
+
             // lets apply filtering (if any)
             try
             {
@@ -54,14 +57,14 @@ namespace ExpenseTracker.API.Controllers
                         statusCode = 3;
                         break;
                     default: // no filtering
-                        statusCode = 0;
+                        statusCode = -1;
                         break;
                 }
                 
                 // and then lets query the repository, applying filter and sort
                 var results = _repository.GetExpenseGroups()
                     .ApplySort(sort)
-                    .Where(ex => ex.ExpenseGroupStatusId > 0)
+                    .Where(ex => (ex.ExpenseGroupStatusId == statusCode) || (statusCode == -1))
                     .ToList();
                     // .Select(e => _expenseGroupFactory.CreateExpenseGroup(e));
 
@@ -106,10 +109,12 @@ namespace ExpenseTracker.API.Controllers
                     nextPageLink = nextLink
                 };
 
+                // Lets add this nice header to the set of headers we return already
                 HttpContext.Current.Response.Headers
                     .Add("X-Pagination", Newtonsoft.Json
                     .JsonConvert.SerializeObject(paginationHeader));
 
+                // and now lets cut exact slice from the results we acquired
                 return Ok(results
                     .Skip(pageSize*(page - 1))
                     .Take(pageSize)
