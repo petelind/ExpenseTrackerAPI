@@ -43,6 +43,40 @@ namespace ExpenseTracker.Repository.Factories
                 Id = expense.Id
             };
         }
+
+        public object CreatedDatashapedExpense(DTO.Expense expense, List<string> fieldsToRetrieve)
+        {
+            // No shaping? Fine then, get default object
+            if (!fieldsToRetrieve.Any())
+            {
+                return expense;
+            }
+
+            // otherwise we will build object on the fly with ExpandoObject
+            ExpandoObject dynamicObject = new ExpandoObject();
+
+            // Now lets extract fields from expense provided one by one
+            foreach (var field in fieldsToRetrieve)
+            {
+                var fieldValue = expense.GetType() // We use reflection to assess property and get its value
+                    .GetProperty(field, BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public)
+                    .GetValue(expense, null);
+
+                // and then we treat ExpandoObject as usual dictionary by casting it & writing field and its value into it
+                ((IDictionary<String, Object>)dynamicObject).Add(field, fieldValue);
+            }
+
+            return dynamicObject;
+
+
+        }
+
+        public object CreatedDatashapedExpense(Expense expense, List<string> fieldsToRetrieve)
+        {
+            // stub call above overload - so we basically always use overload above
+            return CreatedDatashapedExpense(CreateExpense(expense), fieldsToRetrieve);
+        }
+
          
     }
 }

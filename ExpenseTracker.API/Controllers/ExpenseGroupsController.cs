@@ -48,8 +48,8 @@ namespace ExpenseTracker.API.Controllers
             try
             {
 
-                int statusId = -1;
 
+                int statusId = -1;
                 if (status != null)
                 {
                     switch (status.ToLower())

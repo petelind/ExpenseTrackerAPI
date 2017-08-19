@@ -35,10 +35,13 @@ namespace ExpenseTracker.API.Controllers
         [Route("expenses", Name = "expensesList")]
         [Route("expensegroups/{expenseGroupId}/expenses")]
         [HttpGet]
-        public IHttpActionResult Get(int? expenseGroupId = null, string sort = null, int pagesize = 10, int page = 1)
+        public IHttpActionResult Get(int? expenseGroupId = null, string sort = null, int pagesize = 10, int page = 1, string retrieveFields = null)
         {
             try
             {
+                List<string> fieldsRequested = new List<string>();
+                if (retrieveFields != null) fieldsRequested = retrieveFields.ToLower().Split(',').ToList();
+                
                 if (expenseGroupId == null)
                 {
                     var expenses = _repository.GetExpenses()
@@ -55,7 +58,7 @@ namespace ExpenseTracker.API.Controllers
                         .Skip((page - 1) * pagesize)
                         .Take(pagesize)
                         .ToList()
-                        .Select(e => _expenseFactory.CreateExpense(e));
+                        .Select(e => _expenseFactory.CreatedDatashapedExpense(e, fieldsRequested));
                         
                     var urlHelper = new UrlHelper(Request);
                     var prevLink = pagesCount > 1
@@ -96,7 +99,7 @@ namespace ExpenseTracker.API.Controllers
                 var checkIfEgExists = _repository.GetExpenseGroup((int)expenseGroupId);
                 if (checkIfEgExists == null) return NotFound();
 
-                var expensesForEg = _repository.GetExpenses((int)expenseGroupId).ToList().Select(e => _expenseFactory.CreateExpense(e));
+                var expensesForEg = _repository.GetExpenses((int)expenseGroupId).ToList().Select(e => _expenseFactory.CreatedDatashapedExpense(e, fieldsRequested));
                 return Ok(expensesForEg);
 
             }
