@@ -6,41 +6,34 @@ using System.Web;
 
 namespace ExpenseTracker.API.Helpers
 {
-    public static class IQueryableExtensions 
+    public static class IQueryableExtensions
     {
         public static IQueryable<T> ApplySort<T>(this IQueryable<T> source, string sort)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException();
-            }
+            if (source == null) throw new ArgumentNullException("source");
+            if (sort == null) return source;
 
-        if (String.IsNullOrEmpty(sort))
-            {
-                return source;
-            }
-            
             var lstSort = sort.Split(',');
+            string sortString = "";
 
-            string completeSortExpression = "";
             foreach (var sortOption in lstSort)
             {
                 if (sortOption.StartsWith("-"))
                 {
-                    completeSortExpression = completeSortExpression + sortOption.Remove(0, 1) + " descending,";
+                    sortString= sortString + sortOption.Remove(0, 1) + " descending,";
                 }
+
                 else
                 {
-                    completeSortExpression = completeSortExpression + sortOption + ",";
+                    sortString = sortString + sortOption + ",";
                 }
             }
 
-            if (!string.IsNullOrEmpty(completeSortExpression))
+            sortString = sortString.Remove(sortString.Length - 1);
+
+            if (!string.IsNullOrEmpty(sortString))
             {
-                completeSortExpression = completeSortExpression.Remove(completeSortExpression.Count() - 1);
-                
-                
-                source = source.OrderBy(completeSortExpression);
+                source = source.OrderBy(sortString);
             }
 
             return source;

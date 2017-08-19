@@ -5,243 +5,297 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Messaging;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Routing;
-using Marvin.JsonPatch;
-using Microsoft.ApplicationInsights;
-using ExpenseTracker.API.Helpers;
+using System.Web.UI.WebControls;
 using ExpenseTracker.Repository.Entities;
+using Marvin.JsonPatch;
+using ExpenseTracker.API.Helpers;
 
 namespace ExpenseTracker.API.Controllers
 {
     public class ExpenseGroupsController : ApiController
     {
         IExpenseTrackerRepository _repository;
-        ExpenseGroupFactory _expenseGroupFactory = new ExpenseGroupFactory();
+        ExpenseGroupFactory _expenseGroupFactory;
+
+        public const int MaxPageSize = 100;
 
         public ExpenseGroupsController()
         {
             _repository = new ExpenseTrackerEFRepository(new 
                 Repository.Entities.ExpenseTrackerContext());
+            _expenseGroupFactory= new ExpenseGroupFactory();
         }
 
         public ExpenseGroupsController(IExpenseTrackerRepository repository)
         {
             _repository = repository;
-        }
+        }    
 
+        /// <summary>
+        /// Get all available ExpenseGroups (by default) or subset matching supplied criteria, sorted.
+        /// </summary>
+        /// <returns>IEnumerable of DTO.ExpenseGroups</returns>
         [HttpGet]
         [Route("api/expensegroups", Name = "ExpenseGroupsList")]
-        public IHttpActionResult Get(string sort = "id", string status = "", int page = 1, int pageSize = 50)
+        public IHttpActionResult Get(string sort = "-id", 
+            string status = null, string userid = null, int page = 1, int pageSize = 5)
         {
-            const int maxPageSize = 100;
-            int statusCode;
-
-            // if pagesize is too big lets set it to allowed maximum
-            pageSize = pageSize > maxPageSize ? pageSize = maxPageSize : pageSize = pageSize;
-
-            // lets apply filtering (if any)
             try
             {
 
-                switch (status.ToLower())
+                int statusId = -1;
+
+                if (status != null)
                 {
-                    case "open":
-                        statusCode = 1;
-                        break;
-                    case "confirmed":
-                        statusCode = 2;
-                        break;
-                    case "processed":
-                        statusCode = 3;
-                        break;
-                    default: // no filtering
-                        statusCode = -1;
-                        break;
+                    switch (status.ToLower())
+                    {
+                        case "open":
+                            statusId = 1;
+                            break;
+                        case "confirmed":
+                            statusId = 2;
+                            break;
+                        case "processed":
+                            statusId = 3;
+                            break;
+                        default: break;
+                    }
                 }
-                
-                // and then lets query the repository, applying filter and sort
-                var results = _repository.GetExpenseGroups()
+
+                var expenseGroups = _repository.GetExpenseGroups()
                     .ApplySort(sort)
-                    .Where(ex => (ex.ExpenseGroupStatusId == statusCode) || (statusCode == -1))
-                    .ToList();
-                    // .Select(e => _expenseGroupFactory.CreateExpenseGroup(e));
+                    .Where(eg => (statusId == -1 || eg.ExpenseGroupStatusId == statusId))
+                    .Where(eg => (userid == null || eg.UserId == userid)).ToList();
+                    
 
-                // and now lets paginate output. First let find out how many pages we have
-                int totalCount = results.Count();
-                int totalPages = (int)Math.Ceiling((double) totalCount / pageSize);
+                int totalExpenseGroups = expenseGroups.Count();
+                int totalPages = Convert.ToInt16((Math.Ceiling(Convert.ToDouble(totalExpenseGroups / pageSize))));
+                if (pageSize > MaxPageSize) pageSize = MaxPageSize;
 
-                // and now we are ready to produce URI of "next" & "previous" pages
+                var requestedSubset = expenseGroups
+                    .Skip((page -1) * pageSize)
+                    .Take(pageSize)
+                    .ToList()
+                    .Select(eg => _expenseGroupFactory.CreateExpenseGroup(eg));
+
                 var urlHelper = new UrlHelper(Request);
-                
                 var prevLink = page > 1
                     ? urlHelper.Link("ExpenseGroupsList", new
-                    {                                                
-                        sort = sort,
-                        status = status,
-                        page = page - 1,
-                        pageSize = pageSize
-                        // userId = userId
-                    })
-                    : ""; // on the 1st page there is no "previous page " link :)
-
-                var nextLink = page < totalPages
-                    ? urlHelper.Link("ExpenseGroupsList", new
-                    {   
-                        page = page + 1,
+                    {
+                        page = page -1,
                         pageSize = pageSize,
                         sort = sort,
-                        status = status                       
+                        userid = userid,
+                        status = status
                     })
                     : "";
 
-                // like normal gents we are not forcing customer to parse,
-                // we supply answer AND header and he decides if he needs to paginate & how
-
+                var nextLink = page > 1
+                    ? urlHelper.Link("ExpenseGroupsList", new
+                    {
+                        page = page + 1,
+                        pageSize = pageSize,
+                        sort = sort,
+                        userid = userid,
+                        status = status
+                    })
+                    : "";
                 var paginationHeader = new
                 {
                     currentPage = page,
                     pageSize = pageSize,
-                    totalCount = totalCount,
+                    totalCount = totalExpenseGroups,
                     totalPages = totalPages,
-                    previousPageLink = prevLink,
-                    nextPageLink = nextLink
+                    nextPage = nextLink,
+                    previousPage = prevLink
+
                 };
 
-                // Lets add this nice header to the set of headers we return already
-                HttpContext.Current.Response.Headers
-                    .Add("X-Pagination", Newtonsoft.Json
-                    .JsonConvert.SerializeObject(paginationHeader));
+                HttpContext.Current
+                    .Response.Headers
+                    .Add("X-Pagination", Newtonsoft.Json.JsonConvert.SerializeObject(paginationHeader));
 
-                // and now lets cut exact slice from the results we acquired
-                return Ok(results
-                    .Skip(pageSize*(page - 1))
-                    .Take(pageSize)
-                    .Select(e => _expenseGroupFactory.CreateExpenseGroup(e))
-                    );
-            }
-            catch (Exception e)
-            {
-               TelemetryClient telemetry = new TelemetryClient();
-               telemetry.TrackException(e);
-               return InternalServerError();
-            }
-        }
-
-        public IHttpActionResult Get(int id)
-        {
-            try
-            {
-                var expenseGroup = _repository.GetExpenseGroup(id);
-                if (expenseGroup == null) return NotFound();
-                return Ok(_expenseGroupFactory.CreateExpenseGroup(expenseGroup));
+                return Ok(requestedSubset);
 
             }
             catch (Exception)
             {
+                // FIX: Record exception to telemetry
                 return InternalServerError();
             }
         }
 
-        [HttpPost]
-        public IHttpActionResult Post(DTO.ExpenseGroup expenseGroup)
+        /// <summary>
+        ///  Returns ExpenseGroups with Id you supplied. Set attachExpenses = true to get also all expenses within a group.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="attachExpenses"></param>
+        /// <returns>DTO.ExpenseGroup matching Id.</returns>
+        [HttpGet]
+        public IHttpActionResult Get (int id, bool attachExpenses = false)
         {
             try
             {
-                if (expenseGroup == null || !ModelState.IsValid)
-                {
-                    return BadRequest();
-                }
-                
-                var eg = _expenseGroupFactory.CreateExpenseGroup(expenseGroup);
-                var result = _repository.InsertExpenseGroup(eg);
+                var result = attachExpenses ? _repository.GetExpenseGroupWithExpenses(id) : _repository.GetExpenseGroup(id);
 
-                if (result.Status == RepositoryActionStatus.Created)
+                if (result == null) return NotFound();
+                
+                var resultDto = _expenseGroupFactory.CreateExpenseGroup(result);
+                return Ok(resultDto);
+
+            }
+            catch (Exception)
+            {
+                // FIX: Record exception to telemetry
+                return InternalServerError();
+            }
+        }
+
+
+        /// <summary>
+        /// Creates an ExpenseGroup from DTO.ExpenseGroup you provide.
+        /// </summary>
+        /// <param name="newGroup"></param>
+        /// <returns>URI + JSON representation</returns>
+        [HttpPost]
+        public IHttpActionResult Post([FromBody] DTO.ExpenseGroup newGroup)
+        {
+            try
+            {
+
+                if (newGroup == null) return BadRequest();
+                
+                var eg = _expenseGroupFactory.CreateExpenseGroup(newGroup);
+                var attemptingAddition = _repository.InsertExpenseGroup(eg);
+                if (attemptingAddition.Status == RepositoryActionStatus.Created)
                 {
-                    var newExpenseGroup = _expenseGroupFactory.CreateExpenseGroup(result.Entity);
-                    return Created(Request.RequestUri + "/" + newExpenseGroup.Id.ToString(), newExpenseGroup); // basically we return path & JSON representation
+                    var createdExpenseGroupDto = _expenseGroupFactory.CreateExpenseGroup(attemptingAddition.Entity);
+                    return Created(Request.RequestUri + "/" + createdExpenseGroupDto.Id.ToString(),
+                        createdExpenseGroupDto);
                 }
 
                 return BadRequest();
+
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                var telemetryClientclient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClientclient.TrackException(exception);
+                return InternalServerError();
+            }
+            
+            
+        }
+
+        /// <summary>
+        /// Updates ExpenseGroups/{Id} with the values from DTO.ExpenseGroup you supplied.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="withThisNewValues"></param>
+        /// <returns>DTO.ExpenseGroup with updates applied.</returns>
+        [HttpPut]
+        public IHttpActionResult Put(int id, [FromBody] DTO.ExpenseGroup withThisNewValues)
+        {
+            try
+            {
+
+                if (withThisNewValues == null) return BadRequest();
+
+                var newValues = _expenseGroupFactory.CreateExpenseGroup(withThisNewValues);
+                var update = _repository.UpdateExpenseGroup(newValues);
+
+                if (update.Status == RepositoryActionStatus.NotFound) return NotFound();
+                if (update.Status == RepositoryActionStatus.Updated)
+                    return Ok(_expenseGroupFactory.CreateExpenseGroup(update.Entity));
+
+                return BadRequest();
+
+            }
+            catch (Exception e)
+            {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
         }
 
-        /// Updates resources with the given ID to the state provided by the supplied ExpenseGroupDTO.
-        [HttpPut]
-        public IHttpActionResult Put(int id, DTO.ExpenseGroup expenseGroup)
+        /// <summary>
+        /// Applies JSONPatchDocument to the ExpenseGroup with given Id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="patchToApply"></param>
+        /// <returns>JSON of patched DTO.ExpenseGroup.</returns>
+        [HttpPatch]
+        public IHttpActionResult Patch(int id, [FromBody] JsonPatchDocument<DTO.ExpenseGroup> patchToApply)
         {
             try
             {
-                // check if we got valid input
-                if (expenseGroup == null || id < 1 || !ModelState.IsValid) return BadRequest();
-                // then find the ExpenseGroup with given ID
-                var egToBeUpdated = _repository.GetExpenseGroup(id);
-                // if nothing found - return NotFound
-                if (egToBeUpdated == null)
+                if (patchToApply == null) return BadRequest();
+
+                var egToPatch = _repository.GetExpenseGroup(id);
+                if (egToPatch == null) return NotFound();
+
+                // Pay attention: patch should BE APPLIED TO DTO! so...
+                var egToPatchDto = _expenseGroupFactory.CreateExpenseGroup(egToPatch);
+                patchToApply.ApplyTo(egToPatchDto);
+
+                var attemptedPatch = // basically backward conversion in one-liner
+                    _repository.UpdateExpenseGroup(_expenseGroupFactory.CreateExpenseGroup(egToPatchDto));
+
+                if (attemptedPatch.Status == RepositoryActionStatus.Updated)
                 {
-                    return NotFound();
+                    return Ok(_expenseGroupFactory.CreateExpenseGroup(attemptedPatch.Entity));
                 }
-                // else get this ExpenseGroup & update it to the status given
-                var egUpdateSource = _expenseGroupFactory.CreateExpenseGroup(expenseGroup);
-                egToBeUpdated = egUpdateSource;
-                // and then save it
-                var result = _repository.UpdateExpenseGroup(egToBeUpdated);
-                if (result.Status == RepositoryActionStatus.Updated)
-                    return Ok(_expenseGroupFactory.CreateExpenseGroup(egToBeUpdated));
-                else
-                {
-                    return BadRequest();
-                }
+
+                return BadRequest();
+
             }
-            // return error if failed to do this block
-            catch (Exception)
+            catch (Exception e)
             {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
             
         }
 
-        /// Updates required fields of the EG with given id to the state described in patch.
-        [HttpPatch]
-        public IHttpActionResult Patch(int id, [FromBody] JsonPatchDocument<DTO.ExpenseGroup> egPatchDocument)
-        {
-            try
-            {
-                if (id < 1 || egPatchDocument == null) return BadRequest("Expected: op, path to parameter, new value!");
-                var egToBePatched = _repository.GetExpenseGroup(id);
-                if (egToBePatched == null) return NotFound();
-                var egToBePatchedAsDto = _expenseGroupFactory.CreateExpenseGroup(egToBePatched);
-                egPatchDocument.ApplyTo(egToBePatchedAsDto);
-                var result = _repository.UpdateExpenseGroup(_expenseGroupFactory.CreateExpenseGroup(egToBePatchedAsDto));
-                if (result.Status == RepositoryActionStatus.Updated)
-                    return Ok(_expenseGroupFactory.CreateExpenseGroup(result.Entity));
-                return BadRequest();
-            }
-            catch (Exception e)
-            {
-                return InternalServerError();
-            }
-        }
-
-        /// Delete EG with the ID supplied or returns NotFound if there is none.
+        
+        /// <summary>
+        /// Physically deletes ExpenseGroup with given Id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>StatusCode(HttpStatusCode.NoContent) on success.</returns>
         [HttpDelete]
         public IHttpActionResult Delete(int id)
         {
-            if (id < 1 )
+            try
             {
-                return BadRequest("IDs are always positive!");
+                var attemptedDeletion = _repository.DeleteExpenseGroup(id);
+
+                if (attemptedDeletion.Status == RepositoryActionStatus.NotFound)
+                {
+                    return NotFound();
+                }
+
+                if (attemptedDeletion.Status == RepositoryActionStatus.Deleted)
+                {
+                    return StatusCode(HttpStatusCode.NoContent);
+                }
+
+                return BadRequest();
+
             }
-
-            var result = _repository.DeleteExpenseGroup(id);
-            if (result.Status == RepositoryActionStatus.Deleted) return StatusCode(HttpStatusCode.NoContent);
-            else return NotFound();
-
-            return BadRequest();
+            catch (Exception e)
+            {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
+                return InternalServerError();
+            }
         }
 
     }

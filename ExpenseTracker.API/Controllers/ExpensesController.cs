@@ -7,6 +7,8 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Http;
+using System.Web.Http.Routing;
+using ExpenseTracker.API.Helpers;
 
 namespace ExpenseTracker.API.Controllers
 {
@@ -17,6 +19,8 @@ namespace ExpenseTracker.API.Controllers
         IExpenseTrackerRepository _repository;
         ExpenseFactory _expenseFactory = new ExpenseFactory();
 
+        public const int MaxPageSize = 10;
+
         public ExpensesController()
         {
             _repository = new ExpenseTrackerEFRepository(new Repository.Entities.ExpenseTrackerContext());
@@ -26,10 +30,89 @@ namespace ExpenseTracker.API.Controllers
         {
             _repository = repository;
         }
-         
 
-     
 
+        [Route("expenses", Name = "expensesList")]
+        [Route("expensegroups/{expenseGroupId}/expenses")]
+        [HttpGet]
+        public IHttpActionResult Get(int? expenseGroupId = null, string sort = null, int pagesize = 10, int page = 1)
+        {
+            try
+            {
+                if (expenseGroupId == null)
+                {
+                    var expenses = _repository.GetExpenses()
+                        .ApplySort(sort)
+                        .ToList();
+
+                    pagesize = pagesize > MaxPageSize ? MaxPageSize : pagesize;
+
+                    int expensesCount = expenses.Count();
+                    int pagesCount =
+                        Convert.ToInt16(Math.Ceiling((Convert.ToDouble(expensesCount) / Convert.ToDouble(pagesize))));
+
+                    var requestedSubset = expenses
+                        .Skip((page - 1) * pagesize)
+                        .Take(pagesize)
+                        .ToList()
+                        .Select(e => _expenseFactory.CreateExpense(e));
+                        
+                    var urlHelper = new UrlHelper(Request);
+                    var prevLink = pagesCount > 1
+                        ? urlHelper.Link("ExpensesList", new
+                        {
+                            page = page - 1,
+                            pagesCount = pagesCount,
+                            pagesize = pagesize,
+                            sort = sort
+                        })
+                        : "";
+
+                    var nextLink = pagesCount > 1
+                        ? urlHelper.Link("expensesList", new
+                        {
+                            page = page + 1,
+                            pagesCount = pagesCount,
+                            pagesize = pagesize,
+                            sort = sort
+                        })
+                        : "";
+
+                    var navigationHeader = new
+                    {
+                        currentPage = page,
+                        pagesize = pagesize,
+                        pagesCount = pagesCount,
+                        prevLink = prevLink,
+                        nextLink = nextLink,
+                    };
+
+                    HttpContext.Current.Response
+                        .Headers.Add("X-Pagination", Newtonsoft.Json.JsonConvert.SerializeObject(navigationHeader));
+
+                    return Ok(requestedSubset);
+                }
+
+                var checkIfEgExists = _repository.GetExpenseGroup((int)expenseGroupId);
+                if (checkIfEgExists == null) return NotFound();
+
+                var expensesForEg = _repository.GetExpenses((int)expenseGroupId).ToList().Select(e => _expenseFactory.CreateExpense(e));
+                return Ok(expensesForEg);
+
+            }
+            catch (Exception e)
+            {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
+                return InternalServerError();
+            }
+        }
+
+        /// <summary>
+        ///  Returns all Expenses or Expenses corresponding to the ExpenseGroup it is called within.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Inumerable<DTO.Expense> containing Expenses matching criteria.</returns>
         [Route("expenses/{id}")]
         public IHttpActionResult Delete(int id)
         {
@@ -85,72 +168,6 @@ namespace ExpenseTracker.API.Controllers
             }
         }
 
-        [Route("expenses")]
-        [Route("expensegroups/{expenseGroupId}/expenses")]
-        [HttpGet]
-        public IHttpActionResult Get(int? expenseGroupId = null)
-        {
-            try
-            {
-                if (expenseGroupId == null)
-                {
-                    var expenses = _repository.GetExpenses()
-                        .ToList()
-                        .Select(e => _expenseFactory.CreateExpense(e));
-                    return Ok(expenses);
-                }
-                else
-                {
-                    var expenses = _repository.GetExpenses()
-                    .ToList()
-                    .Select(e => _expenseFactory.CreateExpense(e));
-                    return Ok(expenses);
-                }
-                
-                return BadRequest();
-
-            }
-            catch (Exception)
-            {
-                return InternalServerError();
-            }
-           
-        }
-
-        [Route("expensegroups/{expenseGroupId}/expenses")]
-        public IHttpActionResult GetExpensesForExpenseGroup(int expenseGroupId)
-        {
-            try
-            {
-                var results = _repository.GetExpenses(expenseGroupId);
-                if (results == null) return NotFound();
-                return Ok(results.ToList().Select(e => _expenseFactory.CreateExpense(e)));
-            }
-            catch (Exception e)
-            {
-                var telemetry = new Microsoft.ApplicationInsights.TelemetryClient();
-                telemetry.TrackException(e);
-                return InternalServerError();
-            }
-        }
-
-        [Route("expenses/{id}")]
-        [HttpGet]
-        public IHttpActionResult Get(int id)
-        {
-            try
-            {
-                var result = _repository.GetExpense(id);
-                if (result == null) return NotFound();
-                return Ok(_expenseFactory.CreateExpense(result));
-            }
-            catch (Exception e)
-            {
-                var telemetry = new Microsoft.ApplicationInsights.TelemetryClient(); 
-                telemetry.TrackTrace("INVESTIGATE: Cannot GET Expense with ID " + id);
-                return InternalServerError();
-            }
-        }
 
         [Route("expenses/{id}")]
         public IHttpActionResult Put(int id, [FromBody]DTO.Expense expense)

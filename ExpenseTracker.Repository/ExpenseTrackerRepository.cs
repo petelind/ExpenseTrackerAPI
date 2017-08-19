@@ -19,6 +19,10 @@ namespace ExpenseTracker.Repository
 
         ExpenseTrackerContext _ctx;
 
+        /// <summary>
+        /// Creates Expense Tracker repository from supplied DBContext class.
+        /// </summary>
+        /// <param name="ctx"></param>
         public ExpenseTrackerEFRepository(ExpenseTrackerContext ctx)
         {
             _ctx = ctx;
@@ -34,6 +38,12 @@ namespace ExpenseTracker.Repository
 
         }
 
+        /// <summary>
+        /// Returns an Expense with Id you supplied, you may also specify Id of ExpenseGroup where to look.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="expenseGroupId"></param>
+        /// <returns></returns>
         public Expense GetExpense(int id, int? expenseGroupId = null)
         {
             return _ctx.Expenses.FirstOrDefault(e => e.Id == id && 

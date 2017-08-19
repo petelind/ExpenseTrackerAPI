@@ -14,22 +14,24 @@ namespace ExpenseTracker.API
         {
             var config = new HttpConfiguration();
 
-            // Web API routes
+            // First, lets clear ATOM \ XML and other sh*t from supported formats
             config.MapHttpAttributeRoutes();
-
-            config.Routes.MapHttpRoute(name: "DefaultRouting",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional });
-
             config.Formatters.XmlFormatter.SupportedMediaTypes.Clear();
 
-            config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json-patch+json"));
+            // Then lets create default mapping for ApiControllers inside API "folder"
+            config.Routes.MapHttpRoute(name: "DefaultRouting",
+                routeTemplate: "api/{controller}/{id}",
+                defaults: new { id = RouteParameter.Optional }); // we sending in nameless object (lecture 4 of previous course)
 
+            // Lets make JSON nicely indented...
             config.Formatters.JsonFormatter.SerializerSettings.Formatting
                 = Newtonsoft.Json.Formatting.Indented;
-
+            
+            // ...and looking JS-style
             config.Formatters.JsonFormatter.SerializerSettings.ContractResolver
                 = new CamelCasePropertyNamesContractResolver();
+
+            config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json-patch+json"));
 
             return config;
              
