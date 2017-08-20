@@ -35,12 +35,10 @@ namespace ExpenseTracker.API.Controllers
         [Route("expenses", Name = "expensesList")]
         [Route("expensegroups/{expenseGroupId}/expenses")]
         [HttpGet]
-        public IHttpActionResult Get(int? expenseGroupId = null, string sort = null, int pagesize = 10, int page = 1, string retrieveFields = null)
+        public IHttpActionResult Get(int? expenseGroupId = null, string sort = null, int pagesize = 10, int page = 1, string fieldsToRetrieve = null)
         {
             try
             {
-                List<string> fieldsRequested = new List<string>();
-                if (retrieveFields != null) fieldsRequested = retrieveFields.ToLower().Split(',').ToList();
                 
                 if (expenseGroupId == null)
                 {
@@ -58,7 +56,7 @@ namespace ExpenseTracker.API.Controllers
                         .Skip((page - 1) * pagesize)
                         .Take(pagesize)
                         .ToList()
-                        .Select(e => _expenseFactory.CreatedDatashapedExpense(e, fieldsRequested));
+                        .Select(e => _expenseFactory.CreatedDatashapedExpense(e, fieldsToRetrieve));
                         
                     var urlHelper = new UrlHelper(Request);
                     var prevLink = pagesCount > 1
@@ -88,6 +86,7 @@ namespace ExpenseTracker.API.Controllers
                         pagesCount = pagesCount,
                         prevLink = prevLink,
                         nextLink = nextLink,
+                        fieldsToRetrieve = fieldsToRetrieve
                     };
 
                     HttpContext.Current.Response
@@ -99,7 +98,7 @@ namespace ExpenseTracker.API.Controllers
                 var checkIfEgExists = _repository.GetExpenseGroup((int)expenseGroupId);
                 if (checkIfEgExists == null) return NotFound();
 
-                var expensesForEg = _repository.GetExpenses((int)expenseGroupId).ToList().Select(e => _expenseFactory.CreatedDatashapedExpense(e, fieldsRequested));
+                var expensesForEg = _repository.GetExpenses((int)expenseGroupId).ToList().Select(e => _expenseFactory.CreatedDatashapedExpense(e, fieldsToRetrieve));
                 return Ok(expensesForEg);
 
             }

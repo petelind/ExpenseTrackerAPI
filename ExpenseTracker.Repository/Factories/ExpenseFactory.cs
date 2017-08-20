@@ -44,10 +44,14 @@ namespace ExpenseTracker.Repository.Factories
             };
         }
 
-        public object CreatedDatashapedExpense(DTO.Expense expense, List<string> fieldsToRetrieve)
+        public object CreatedDatashapedExpense(DTO.Expense expense, string fieldsToRetrieve)
         {
+
+            List<string> fieldsRequested = new List<string>();
+            if (fieldsToRetrieve != null) fieldsRequested = fieldsToRetrieve.ToLower().Split(',').ToList();
+            
             // No shaping? Fine then, get default object
-            if (!fieldsToRetrieve.Any())
+            if (!fieldsRequested.Any())
             {
                 return expense;
             }
@@ -56,22 +60,29 @@ namespace ExpenseTracker.Repository.Factories
             ExpandoObject dynamicObject = new ExpandoObject();
 
             // Now lets extract fields from expense provided one by one
-            foreach (var field in fieldsToRetrieve)
+            foreach (var field in fieldsRequested)
             {
-                var fieldValue = expense.GetType() // We use reflection to assess property and get its value
-                    .GetProperty(field, BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public)
-                    .GetValue(expense, null);
+                var fieldValueProperty = expense.GetType() // We use reflection to assess property...
+                    .GetProperty(field, BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public);
 
-                // and then we treat ExpandoObject as usual dictionary by casting it & writing field and its value into it
-                ((IDictionary<String, Object>)dynamicObject).Add(field, fieldValue);
+                if (fieldValueProperty != null) // and if its indeed exists get its value
+                {
+                    var fieldValue = fieldValueProperty.GetValue(expense, null);
+                    // and then we treat ExpandoObject as usual dictionary by casting it & writing field and its value into it
+                    ((IDictionary<String, Object>) dynamicObject).Add(field, fieldValue);
+                }
+                else
+                {
+                    ((IDictionary<string, object>)dynamicObject).Add(field, "No such field exist in Expense.");
+                }
+
             }
 
             return dynamicObject;
 
-
         }
 
-        public object CreatedDatashapedExpense(Expense expense, List<string> fieldsToRetrieve)
+        public object CreatedDatashapedExpense(Expense expense, string fieldsToRetrieve)
         {
             // stub call above overload - so we basically always use overload above
             return CreatedDatashapedExpense(CreateExpense(expense), fieldsToRetrieve);

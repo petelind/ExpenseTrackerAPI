@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Repository", "ExpenseTracker.Repository\ExpenseTracker.Repository.csproj", "{EB835E5E-472F-45FF-B78D-049EC5CFCF09}"
 EndProject
@@ -10,6 +9,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.API", "ExpenseTracker.API\ExpenseTracker.API.csproj", "{C64BF1CC-8203-4C2B-BCFB-5B5013C878EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Constants", "ExpenseTracker.Constants\ExpenseTracker.Constants.csproj", "{3FA80055-18B1-4E1D-8920-DDCAADD06B20}"
+EndProject
+Project("{F088123C-0E9E-452A-89E6-6BA2F21D5CAC}") = "UndertsandingAPI", "UndertsandingAPI\UndertsandingAPI.modelproj", "{62C5737A-F4FB-45E3-B64B-3528BABCAA22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +64,16 @@ Global
 		{3FA80055-18B1-4E1D-8920-DDCAADD06B20}.Release|ARM.ActiveCfg = Release|Any CPU
 		{3FA80055-18B1-4E1D-8920-DDCAADD06B20}.Release|x64.ActiveCfg = Release|Any CPU
 		{3FA80055-18B1-4E1D-8920-DDCAADD06B20}.Release|x86.ActiveCfg = Release|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Release|ARM.ActiveCfg = Release|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Release|x64.ActiveCfg = Release|Any CPU
+		{62C5737A-F4FB-45E3-B64B-3528BABCAA22}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

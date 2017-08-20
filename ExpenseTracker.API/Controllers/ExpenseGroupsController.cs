@@ -43,7 +43,7 @@ namespace ExpenseTracker.API.Controllers
         [HttpGet]
         [Route("api/expensegroups", Name = "ExpenseGroupsList")]
         public IHttpActionResult Get(string sort = "-id", 
-            string status = null, string userid = null, int page = 1, int pageSize = 5)
+            string status = null, string userid = null, int page = 1, int pageSize = 5, string fieldsToRetrieve = null)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace ExpenseTracker.API.Controllers
                     .Skip((page -1) * pageSize)
                     .Take(pageSize)
                     .ToList()
-                    .Select(eg => _expenseGroupFactory.CreateExpenseGroup(eg));
+                    .Select(eg => _expenseGroupFactory.CreateDatashapedExpenseGroup(eg, fieldsToRetrieve));
 
                 var urlHelper = new UrlHelper(Request);
                 var prevLink = page > 1
@@ -112,7 +112,8 @@ namespace ExpenseTracker.API.Controllers
                     totalCount = totalExpenseGroups,
                     totalPages = totalPages,
                     nextPage = nextLink,
-                    previousPage = prevLink
+                    previousPage = prevLink,
+                    fieldsToRetrieve = fieldsToRetrieve
 
                 };
 
@@ -134,10 +135,11 @@ namespace ExpenseTracker.API.Controllers
         ///  Returns ExpenseGroups with Id you supplied. Set attachExpenses = true to get also all expenses within a group.
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="fieldsToRetrieve"></param>
         /// <param name="attachExpenses"></param>
         /// <returns>DTO.ExpenseGroup matching Id.</returns>
         [HttpGet]
-        public IHttpActionResult Get (int id, bool attachExpenses = false)
+        public IHttpActionResult Get (int id, string fieldsToRetrieve = null, bool attachExpenses = false)
         {
             try
             {
@@ -145,7 +147,7 @@ namespace ExpenseTracker.API.Controllers
 
                 if (result == null) return NotFound();
                 
-                var resultDto = _expenseGroupFactory.CreateExpenseGroup(result);
+                var resultDto = _expenseGroupFactory.CreateDatashapedExpenseGroup(result, fieldsToRetrieve);
                 return Ok(resultDto);
 
             }
