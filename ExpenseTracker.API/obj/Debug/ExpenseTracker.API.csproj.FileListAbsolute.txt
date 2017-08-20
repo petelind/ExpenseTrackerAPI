@@ -90,3 +90,8 @@ C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\bin\System.Web.Http.WebHost.xml
 C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\obj\Debug\ExpenseTracker.API.csprojResolveAssemblyReference.cache
 C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\obj\Debug\ExpenseTracker.API.dll
 C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\obj\Debug\ExpenseTracker.API.pdb
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\bin\CacheCow.Common.dll
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\bin\CacheCow.Server.dll
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\bin\Microsoft.Web.Infrastructure.dll
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\bin\CacheCow.Common.xml
+C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.API\bin\CacheCow.Server.xml

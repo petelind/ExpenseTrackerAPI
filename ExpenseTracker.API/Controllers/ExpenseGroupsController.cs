@@ -43,12 +43,13 @@ namespace ExpenseTracker.API.Controllers
         [HttpGet]
         [Route("api/expensegroups", Name = "ExpenseGroupsList")]
         public IHttpActionResult Get(string sort = "-id", 
-            string status = null, string userid = null, int page = 1, int pageSize = 5, string fieldsToRetrieve = null)
+            int page = 1, int pageSize = 5, 
+            string fieldsToRetrieve = null,
+            string status = null, string userid = null,
+            bool attachExpenses=false)
         {
             try
             {
-
-
                 int statusId = -1;
                 if (status != null)
                 {
@@ -67,10 +68,19 @@ namespace ExpenseTracker.API.Controllers
                     }
                 }
 
-                var expenseGroups = _repository.GetExpenseGroups()
-                    .ApplySort(sort)
+                if (fieldsToRetrieve != null)
+                {
+                    List<string> fieldsList = new List<string>();
+                    fieldsList = fieldsToRetrieve.ToLower().Split(',').ToList();
+                    if (fieldsList.Contains("expenses")) attachExpenses = true;
+                }           
+
+                IQueryable<Repository.Entities.ExpenseGroup> expenseGroups = null;
+                expenseGroups = attachExpenses ? _repository.GetExpenseGroupsWithExpenses() : _repository.GetExpenseGroups();
+
+                expenseGroups = expenseGroups.ApplySort(sort)
                     .Where(eg => (statusId == -1 || eg.ExpenseGroupStatusId == statusId))
-                    .Where(eg => (userid == null || eg.UserId == userid)).ToList();
+                    .Where(eg => (userid == null || eg.UserId == userid));
                     
 
                 int totalExpenseGroups = expenseGroups.Count();
@@ -143,17 +153,22 @@ namespace ExpenseTracker.API.Controllers
         {
             try
             {
+                List<string> fieldsRequested = new List<string>();
+                if (fieldsToRetrieve != null) fieldsRequested = fieldsToRetrieve.ToLower().Split(',').ToList();
+
+                if (fieldsRequested.Contains("expenses")) attachExpenses = true;
                 var result = attachExpenses ? _repository.GetExpenseGroupWithExpenses(id) : _repository.GetExpenseGroup(id);
 
                 if (result == null) return NotFound();
-                
+   
                 var resultDto = _expenseGroupFactory.CreateDatashapedExpenseGroup(result, fieldsToRetrieve);
                 return Ok(resultDto);
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // FIX: Record exception to telemetry
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
         }

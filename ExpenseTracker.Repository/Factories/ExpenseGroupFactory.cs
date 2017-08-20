@@ -89,6 +89,7 @@ namespace ExpenseTracker.Repository.Factories
         {
             // stub - if somebody comes to us with ExpenseGroup - we turn it into DTO.ExpenseGroup and
             // ship back to proper method - one which uses DTO
+
             return CreateDatashapedExpenseGroup(CreateExpenseGroup(expenseGroup), fieldsToRetrieve);
         }
 

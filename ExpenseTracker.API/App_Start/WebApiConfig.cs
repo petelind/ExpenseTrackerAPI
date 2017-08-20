@@ -31,7 +31,11 @@ namespace ExpenseTracker.API
             config.Formatters.JsonFormatter.SerializerSettings.ContractResolver
                 = new CamelCasePropertyNamesContractResolver();
 
+            // This will enable new content type we use for our PATCH method
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/json-patch+json"));
+
+            // This will configure cache server we use (simple memory-caching, by default)
+            config.MessageHandlers.Add(new CacheCow.Server.CachingHandler(config));
 
             return config;
              
