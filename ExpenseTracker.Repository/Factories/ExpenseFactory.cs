@@ -7,9 +7,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http.Cors;
 
 namespace ExpenseTracker.Repository.Factories
 {
+
+    [EnableCors("*")]
     public class ExpenseFactory
     {
 

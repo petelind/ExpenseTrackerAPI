@@ -9,14 +9,3 @@
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.Repository\obj\Debug\ExpenseTracker.Repository.csprojResolveAssemblyReference.cache
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.Repository\obj\Debug\ExpenseTracker.Repository.dll
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.Repository\obj\Debug\ExpenseTracker.Repository.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\ExpenseTracker.Repository.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\ExpenseTracker.Repository.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\EntityFramework.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\EntityFramework.SqlServer.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\ExpenseTracker.DTO.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\ExpenseTracker.DTO.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\EntityFramework.xml
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\bin\Debug\EntityFramework.SqlServer.xml
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\obj\Debug\ExpenseTracker.Repository.csprojResolveAssemblyReference.cache
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\obj\Debug\ExpenseTracker.Repository.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Repository\obj\Debug\ExpenseTracker.Repository.pdb

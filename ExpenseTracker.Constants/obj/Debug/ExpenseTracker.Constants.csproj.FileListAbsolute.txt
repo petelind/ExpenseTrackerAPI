@@ -3,7 +3,3 @@
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.Constants\obj\Debug\ExpenseTracker.Constants.csprojResolveAssemblyReference.cache
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.Constants\obj\Debug\ExpenseTracker.Constants.dll
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.Constants\obj\Debug\ExpenseTracker.Constants.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Constants\bin\Debug\ExpenseTracker.Constants.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Constants\bin\Debug\ExpenseTracker.Constants.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Constants\obj\Debug\ExpenseTracker.Constants.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.Constants\obj\Debug\ExpenseTracker.Constants.pdb

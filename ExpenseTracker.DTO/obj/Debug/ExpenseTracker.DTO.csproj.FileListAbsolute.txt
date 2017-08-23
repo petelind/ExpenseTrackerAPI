@@ -2,7 +2,3 @@
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.DTO\bin\Debug\ExpenseTracker.DTO.pdb
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.dll
 \\Mac\Home\Downloads\building-securing-restful-api-aspdotnet\3-exercise-files\1_base\start\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\bin\Debug\ExpenseTracker.DTO.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\bin\Debug\ExpenseTracker.DTO.pdb
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.dll
-C:\GitHub\ExpenseTrackerAPI\ExpenseTracker.DTO\obj\Debug\ExpenseTracker.DTO.pdb
