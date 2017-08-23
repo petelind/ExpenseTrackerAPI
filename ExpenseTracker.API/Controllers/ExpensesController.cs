@@ -13,6 +13,7 @@ using ExpenseTracker.API.Helpers;
 namespace ExpenseTracker.API.Controllers
 {
     [RoutePrefix("api")]
+    [VersionedRoute("expenses", 2)]
     public class ExpensesController : ApiController
     {
 
@@ -33,7 +34,6 @@ namespace ExpenseTracker.API.Controllers
 
 
         [Route("expenses", Name = "expensesList")]
-        [Route("expensegroups/{expenseGroupId}/expenses")]
         [HttpGet]
         public IHttpActionResult Get(int? expenseGroupId = null, string sort = null, int pagesize = 10, int page = 1, string fieldsToRetrieve = null)
         {
@@ -134,8 +134,10 @@ namespace ExpenseTracker.API.Controllers
 
                 return BadRequest();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
         }
@@ -164,12 +166,13 @@ namespace ExpenseTracker.API.Controllers
                 return BadRequest();
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
         }
-
 
         [Route("expenses/{id}")]
         public IHttpActionResult Put(int id, [FromBody]DTO.Expense expense)
@@ -198,8 +201,10 @@ namespace ExpenseTracker.API.Controllers
 
                 return BadRequest();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
         }
@@ -241,8 +246,10 @@ namespace ExpenseTracker.API.Controllers
 
                 return BadRequest();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                var telemetryClient = new Microsoft.ApplicationInsights.TelemetryClient();
+                telemetryClient.TrackException(e);
                 return InternalServerError();
             }
         }
