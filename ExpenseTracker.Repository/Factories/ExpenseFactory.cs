@@ -12,7 +12,7 @@ using System.Web.Http.Cors;
 namespace ExpenseTracker.Repository.Factories
 {
 
-    [EnableCors("*")]
+    [EnableCors("*", "*", "*")]
     public class ExpenseFactory
     {
 
