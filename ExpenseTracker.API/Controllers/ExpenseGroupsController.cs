@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Messaging;
 using System.Web;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using System.Web.Http.Routing;
 using System.Web.UI.WebControls;
 using ExpenseTracker.Repository.Entities;
@@ -17,6 +18,7 @@ using ExpenseTracker.API.Helpers;
 
 namespace ExpenseTracker.API.Controllers
 {
+    [RoutePrefix("api")]
     public class ExpenseGroupsController : ApiController
     {
         IExpenseTrackerRepository _repository;
@@ -41,7 +43,7 @@ namespace ExpenseTracker.API.Controllers
         /// </summary>
         /// <returns>IEnumerable of DTO.ExpenseGroups</returns>
         [HttpGet]
-        [Route("api/expensegroups", Name = "ExpenseGroupsList")]
+        [Route("expensegroups", Name = "ExpenseGroupsList")]
         public IHttpActionResult Get(string sort = "-id", 
             int page = 1, int pageSize = 5, 
             string fieldsToRetrieve = null,
@@ -180,6 +182,8 @@ namespace ExpenseTracker.API.Controllers
         /// <param name="newGroup"></param>
         /// <returns>URI + JSON representation</returns>
         [HttpPost]
+        [Route("expensegroups")]
+        [EnableCors("*","*","*")]
         public IHttpActionResult Post([FromBody] DTO.ExpenseGroup newGroup)
         {
             try

@@ -13,7 +13,7 @@ using ExpenseTracker.API.Helpers;
 namespace ExpenseTracker.API.Controllers
 {
     [RoutePrefix("api")]
-    [VersionedRoute("expenses", 2)]
+    [VersionedRoute("expenses", 1)]
     public class ExpensesController : ApiController
     {
 
