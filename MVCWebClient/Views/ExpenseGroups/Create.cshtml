@@ -1,0 +1,32 @@
+﻿@using ExpenseTracker.DTO
+@model MVCWebClient.Models.SingleExpenseGroupViewModel
+<link href="~/Content/Site.css" rel="stylesheet" />
+
+@{
+    ViewBag.Title = ViewBag.FormHeader;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewBag.FormHeader</h2>
+
+
+@using (Html.BeginForm("Edit", "ExpenseGroups"))
+    {
+        <div class="form-group">
+            @Html.LabelFor(m => m.ExpenseGroup.Title, new {@class = "form-control"})
+            @Html.TextBoxFor(m => m.ExpenseGroup.Title, new {@class = "form-control"})
+        </div>
+    
+        <div class="form-group">
+            @Html.LabelFor(m => m.ExpenseGroup.Description, new {@class = "form-control"})
+            @Html.TextBoxFor(m => m.ExpenseGroup.Description, new {@class = "form-control"})
+        </div>
+    
+        <div class="form-group">
+            <label for="ExpenseGroupStatusId">Group Status</label>
+            @Html.DropDownListFor(m => m.ExpenseGroup.ExpenseGroupStatusId, new SelectList(Model.Statuses, "Id", "Description"), "Select Group Status", new { @class = "form-control" })
+        </div>
+    
+        <button type="submit" class="btn btn-primary">Save</button>
+    
+}
