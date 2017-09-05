@@ -13,6 +13,7 @@ using Microsoft.Ajax.Utilities;
 using MVCWebClient.Helpers;
 using MVCWebClient.Models;
 using Newtonsoft.Json;
+using PagedList;
 using ExpenseGroup = ExpenseTracker.DTO.ExpenseGroup;
 using ExpenseGroupStatus = ExpenseTracker.DTO.ExpenseGroupStatus;
 
@@ -33,7 +34,7 @@ namespace MVCWebClient.Controllers
             _expenseGroupFactory = new ExpenseGroupFactory();
         }
 
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(int? page = 1 )
         {
             var client = ExpenseTrackerHttpClient.GetClient();
             ExpenseGroupsViewModel viewModel = new ExpenseGroupsViewModel();
@@ -51,13 +52,23 @@ namespace MVCWebClient.Controllers
                 viewModel.ExpenseGroupStatuses = JsonConvert.DeserializeObject<IEnumerable<ExpenseGroupStatus>>(codes);
             }
 
-            // Now lets fetch expense groups
-            HttpResponseMessage egResponseMessage = await client.GetAsync("api/expensegroups");
+            // Now lets fetch subset of expense groups
+            HttpResponseMessage egResponseMessage = await client.GetAsync("api/expensegroups?page=" + page);
 
-            if (egResponseMessage.IsSuccessStatusCode)
+            if (egResponseMessage.IsSuccessStatusCode) // we successfully accessed our API
             {
-                string content = await egResponseMessage.Content.ReadAsStringAsync();
-                viewModel.ExpenseGroups = JsonConvert.DeserializeObject<IEnumerable<ExpenseGroup>>(content);
+                string content = await egResponseMessage.Content.ReadAsStringAsync(); // lets read actual content we need
+                var pagingInfo = HeaderParser.FindAndParsePagingInfo(egResponseMessage.Headers); // and parse X-Pagination header we need
+
+                // lets get full set of ExpenseGroups in the page we requested
+                var expenseGroups = JsonConvert.DeserializeObject<IEnumerable<ExpenseGroup>>(content);
+                // pack it into pagedList
+                var pagedExpenseGroups = new StaticPagedList<ExpenseGroup>
+                    (expenseGroups, pagingInfo.CurrentPage, pagingInfo.PageSize, pagingInfo.TotalCount);
+
+                // and ship back to view
+                viewModel.ExpenseGroups = pagedExpenseGroups;
+                viewModel.PagingInfo = pagingInfo;
             }
             else
             {

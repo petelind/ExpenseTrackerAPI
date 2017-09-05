@@ -1,5 +1,6 @@
 ﻿@using ExpenseTracker.DTO
 @model MVCWebClient.Models.ExpenseGroupsViewModel
+@using PagedList.Mvc
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -16,22 +17,22 @@
     <p>
         @Html.ActionLink("Create New", "Create")
     </p>
-    <table class="table">
-        <tr>
-            <th>
-                User
-            </th>
-            <th>
-                Title
-            </th>
-            <th>
-                Description
-            </th>
-            <th>
-                Status
-            </th>
-            <th></th>
-        </tr>
+<table class="table">
+    <tr>
+        <th>
+            User
+        </th>
+        <th>
+            Title
+        </th>
+        <th>
+            Description
+        </th>
+        <th>
+            Status
+        </th>
+        <th></th>
+    </tr>
     
     @foreach (var item in Model.ExpenseGroups) {
         <tr>
@@ -55,6 +56,8 @@
         </tr>
     }
     
-    </table>
+</table>
+    @Html.PagedListPager(Model.ExpenseGroups, page => Url.Action("Index", new {page}))
+
 </body>
 </html>
